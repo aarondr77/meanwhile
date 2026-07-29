@@ -1,9 +1,8 @@
-/* Parked in the left margin beside the page, out of the prose's way. */
+/* Pinned to the top-left corner, clear of the page's own left margin. */
 .map {
   position: fixed;
-  top: 50%;
-  left: max(12px, calc(50% - var(--page-width) / 2 - 172px));
-  transform: translateY(-50%);
+  top: 16px;
+  left: 16px;
   z-index: 4;
   display: flex;
   flex-direction: column;
@@ -76,7 +75,7 @@
 }
 
 /* No room for a margin gadget once the page is using the full width. */
-@media (max-width: 1300px) {
+@media (max-width: 1180px) {
   .map {
     display: none;
   }
