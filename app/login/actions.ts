@@ -8,7 +8,8 @@ export async function requestMagicLink(_prev: { sent: boolean }, formData: FormD
   const email = String(formData.get("email") ?? "");
 
   if (isAllowed(email)) {
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? (await headers()).get("origin") ?? "";
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL?.trim() || (await headers()).get("origin") || "";
     const supabase = await createClient();
     await supabase.auth.signInWithOtp({
       email,
