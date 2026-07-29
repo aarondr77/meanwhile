@@ -7,6 +7,7 @@ import { fetchComments, fetchEntries, sortEntriesForDay } from "@/lib/journal";
 import { addDays, formatDayHeading, formatMonthYear, MONTH_NAMES, todayIso } from "@/lib/dates";
 import { paintingForMonth } from "@/lib/paintings";
 import type { Comment, Entry, Profile } from "@/lib/database.types";
+import { DayMark } from "./DayMark";
 import { EntryArticle } from "./EntryArticle";
 import { Painting } from "./Painting";
 import styles from "./stream.module.css";
@@ -227,7 +228,10 @@ export function Stream({
         return (
           <div key={date}>
             <section className={styles.day} data-day={date} id={date}>
-              <h2 className={styles.dayHeading}>{formatDayHeading(date)}</h2>
+              <div className={styles.dayHeadingRow}>
+                <h2 className={styles.dayHeading}>{formatDayHeading(date)}</h2>
+                <DayMark date={date} published={dayEntries.some((entry) => entry.published_at)} />
+              </div>
 
               {sortEntriesForDay([...others, ...(ownEntry ? [ownEntry] : [])]).map((entry) => {
                 const author = profiles.find((profile) => profile.id === entry.author_id);

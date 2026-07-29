@@ -40,6 +40,19 @@ in, making it the user switcher. Production leaves both variables unset.
 npm run seed:staging   # wipes entries/comments, writes a month of both authors' days
 ```
 
+## Day marks
+
+Each day carries a small hand-drawn mark beside its date: two abstract figures,
+one in dusty violet and one in terracotta, for the two people writing. The first
+time a day gets a published entry, `POST /api/day-mark` claims the day in
+`day_marks` and asks a Devin session to draw it (`lib/marks.ts` holds the brief
+and the SVG the session must return). The stream polls `GET /api/day-mark?date=`
+until the session answers, then the SVG is sanitised against a small drawing
+subset of SVG and stored, so the mark is drawn once and read forever.
+
+`DEVIN_API_KEY` must be set for generation. Without it days simply keep no mark —
+nothing else changes.
+
 ## Paintings
 
 `assets/paintings` holds the eight 1536×1024 sources. `npm run paintings`

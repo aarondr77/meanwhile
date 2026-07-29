@@ -173,6 +173,13 @@ export function EntryEditor({
       entryRef.current = data as Entry;
       onEntryChange(data as Entry);
     }
+
+    // The first publish for a day asks Devin to draw that day's mark; later ones are no-ops.
+    void fetch("/api/day-mark", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date }),
+    }).catch(() => undefined);
   };
 
   const setLink = () => {
