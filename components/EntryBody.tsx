@@ -40,6 +40,13 @@ function renderInline(nodes: Node[] | undefined): ReactNode {
   });
 }
 
+/** TipTap keeps the block id in attrs; older rows may carry it at the top level. */
+export function blockIdOf(block: BlockNode): string | undefined {
+  const fromAttrs = block.attrs?.id;
+  if (typeof fromAttrs === "string") return fromAttrs;
+  return typeof block.id === "string" ? block.id : undefined;
+}
+
 function renderNode(node: Node, key: string, blockId?: string): ReactNode {
   const anchor = blockId ? { "data-block-id": blockId } : {};
 
@@ -111,12 +118,15 @@ export function EntryBody({
 }) {
   return (
     <>
-      {body.map((block, i) => (
-        <Fragment key={block.id ?? i}>
-          {renderNode(block as Node, block.id ?? String(i), block.id)}
-          {afterBlock?.(block.id)}
-        </Fragment>
-      ))}
+      {body.map((block, i) => {
+        const id = blockIdOf(block);
+        return (
+          <Fragment key={id ?? i}>
+            {renderNode(block as Node, id ?? String(i), id)}
+            {afterBlock?.(id)}
+          </Fragment>
+        );
+      })}
     </>
   );
 }

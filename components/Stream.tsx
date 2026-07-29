@@ -12,6 +12,7 @@ import { Painting } from "./Painting";
 import styles from "./stream.module.css";
 
 const WINDOW_DAYS = 14;
+const ANCHOR_OFFSET = 8;
 
 export function Stream({
   me,
@@ -32,6 +33,7 @@ export function Stream({
   const [topMonth, setTopMonth] = useState(initialDate);
   const loading = useRef(false);
   const anchorHeight = useRef<number | null>(null);
+  const anchored = useRef(false);
 
   const load = useCallback(
     async (start: string, end: string) => {
@@ -87,6 +89,11 @@ export function Stream({
 
   useLayoutEffect(() => {
     if (anchorHeight.current === null) return;
+    // While still settling on the requested day, the anchoring loop owns scroll position.
+    if (!anchored.current) {
+      anchorHeight.current = null;
+      return;
+    }
     const delta = document.documentElement.scrollHeight - anchorHeight.current;
     anchorHeight.current = null;
     if (delta > 0) window.scrollBy(0, delta);
@@ -111,6 +118,13 @@ export function Stream({
   // The fragment always names the day at the top of the viewport; never pushState.
   useEffect(() => {
     const onScroll = () => {
+      if (!anchored.current) {
+        setTopMonth(initialDate);
+        if (window.location.hash !== `#${initialDate}`) {
+          history.replaceState(null, "", `#${initialDate}`);
+        }
+        return;
+      }
       const sections = document.querySelectorAll<HTMLElement>("[data-day]");
       let current: string | null = null;
       for (const section of sections) {
@@ -126,7 +140,7 @@ export function Stream({
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, [days]);
+  }, [days, initialDate]);
 
   const topSentinel = useRef<HTMLDivElement>(null);
   const bottomSentinel = useRef<HTMLDivElement>(null);
@@ -147,11 +161,37 @@ export function Stream({
     return () => observer.disconnect();
   }, [extendNewer, extendOlder]);
 
+  // Editors and paintings mount after the first paint and change the height above the
+  // requested day, so keep correcting until the layout settles or the reader scrolls.
   useEffect(() => {
-    const target = document.querySelector<HTMLElement>(`[data-day="${initialDate}"]`);
-    target?.scrollIntoView({ block: "start" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [days.length > 0]);
+    if (anchored.current || days.length === 0) return;
+    let frame = 0;
+    const deadline = performance.now() + 1500;
+    const release = () => {
+      anchored.current = true;
+    };
+    const align = () => {
+      const target = document.querySelector<HTMLElement>(`[data-day="${initialDate}"]`);
+      if (target) {
+        const delta = target.getBoundingClientRect().top - ANCHOR_OFFSET;
+        if (Math.abs(delta) > 1) window.scrollBy(0, delta);
+      }
+      if (anchored.current) return;
+      if (performance.now() >= deadline) {
+        release();
+        return;
+      }
+      frame = requestAnimationFrame(align);
+    };
+    frame = requestAnimationFrame(align);
+    window.addEventListener("wheel", release, { passive: true });
+    window.addEventListener("touchstart", release, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("touchstart", release);
+    };
+  }, [days.length, initialDate]);
 
   const upsertEntry = (entry: Entry) => {
     setEntries((prev) => {

@@ -66,10 +66,10 @@ as $$
 declare
   live_ids uuid[];
 begin
-  select coalesce(array_agg((block ->> 'id')::uuid), '{}')
+  select coalesce(array_agg((coalesce(block -> 'attrs' ->> 'id', block ->> 'id'))::uuid), '{}')
     into live_ids
     from jsonb_array_elements(new.body) as block
-   where block ? 'id';
+   where coalesce(block -> 'attrs' ->> 'id', block ->> 'id') is not null;
 
   update public.comments
      set block_id = null

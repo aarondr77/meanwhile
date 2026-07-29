@@ -45,7 +45,7 @@
   margin: 0 0 1.4em;
 }
 
-.prose p.is-editor-empty:first-child::before {
+.prose p:global(.is-editor-empty):first-child::before {
   content: attr(data-placeholder);
   color: #b6b3ad;
   float: left;

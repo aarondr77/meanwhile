@@ -4,9 +4,11 @@ export function newBlockId(): string {
   return crypto.randomUUID();
 }
 
-/** Every top-level block carries a stable UUID; comments anchor to it. */
+/** Every top-level block carries a stable UUID in attrs.id; comments anchor to it. */
 export function withBlockIds(blocks: BlockNode[]): BlockNode[] {
-  return blocks.map((block) => (block.id ? block : { ...block, id: newBlockId() }));
+  return blocks.map((block) =>
+    block.attrs?.id ? block : { ...block, attrs: { ...block.attrs, id: newBlockId() } },
+  );
 }
 
 export function isEmptyBody(body: BlockNode[] | null | undefined): boolean {

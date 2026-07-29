@@ -57,7 +57,9 @@ export function EntryArticle({
   };
 
   const commentsFor = (blockId: string | undefined) =>
-    comments.filter((comment) => (blockId ? comment.block_id === blockId : comment.block_id === null));
+    blockId ? comments.filter((comment) => comment.block_id === blockId) : [];
+
+  const unanchored = comments.filter((comment) => comment.block_id === null);
 
   const openComposerFromSelection = () => {
     if (!published) return;
@@ -89,7 +91,7 @@ export function EntryArticle({
             body={body}
             afterBlock={(blockId) => {
               const own = commentsFor(blockId);
-              const showComposer = composer && composer.blockId === blockId;
+              const showComposer = Boolean(blockId) && composer?.blockId === blockId;
               if (own.length === 0 && !showComposer) return null;
               return (
                 <div className={`${marginStyles.inline} ${styles.inlineOnly}`}>
@@ -124,9 +126,20 @@ export function EntryArticle({
           </button>
         ) : null}
 
-        {published && composer && composer.blockId === null ? (
+        {published && (unanchored.length > 0 || composer?.blockId === null) ? (
           <div className={`${marginStyles.inline} ${styles.inlineOnly}`}>
-            <CommentForm onSubmit={(text) => addComment(null, text)} onCancel={() => setComposer(null)} />
+            {unanchored.map((comment) => (
+              <CommentNote
+                key={comment.id}
+                comment={comment}
+                author={profiles.find((profile) => profile.id === comment.author_id)}
+                mine={comment.author_id === me.id}
+                onDelete={deleteComment}
+              />
+            ))}
+            {composer?.blockId === null ? (
+              <CommentForm onSubmit={(text) => addComment(null, text)} onCancel={() => setComposer(null)} />
+            ) : null}
           </div>
         ) : null}
       </div>
