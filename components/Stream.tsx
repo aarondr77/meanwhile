@@ -12,7 +12,8 @@ import { Painting } from "./Painting";
 import styles from "./stream.module.css";
 
 const WINDOW_DAYS = 14;
-const ANCHOR_OFFSET = 8;
+/** Clears the sticky month link so the day heading is not hidden behind it. */
+const ANCHOR_OFFSET = 56;
 
 export function Stream({
   me,

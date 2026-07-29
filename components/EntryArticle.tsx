@@ -59,7 +59,9 @@ export function EntryArticle({
   const commentsFor = (blockId: string | undefined) =>
     blockId ? comments.filter((comment) => comment.block_id === blockId) : [];
 
-  const unanchored = comments.filter((comment) => comment.block_id === null);
+  // The author's own prose is the editor, which has no per-block render slots, so their
+  // notes all fall back to the single inline section (mobile) below the entry.
+  const inlineFallback = editable ? comments : comments.filter((comment) => comment.block_id === null);
 
   const openComposerFromSelection = () => {
     if (!published) return;
@@ -126,9 +128,9 @@ export function EntryArticle({
           </button>
         ) : null}
 
-        {published && (unanchored.length > 0 || composer?.blockId === null) ? (
+        {published && (inlineFallback.length > 0 || composer?.blockId === null) ? (
           <div className={`${marginStyles.inline} ${styles.inlineOnly}`}>
-            {unanchored.map((comment) => (
+            {inlineFallback.map((comment) => (
               <CommentNote
                 key={comment.id}
                 comment={comment}

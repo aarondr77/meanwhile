@@ -26,8 +26,9 @@ export const BlockId = Extension.create({
         attributes: {
           id: {
             default: null,
-            parseHTML: (element) => element.getAttribute("data-id"),
-            renderHTML: (attributes) => (attributes.id ? { "data-id": attributes.id } : {}),
+            parseHTML: (element) => element.getAttribute("data-block-id"),
+            renderHTML: (attributes) =>
+              attributes.id ? { "data-block-id": attributes.id } : {},
           },
         },
       },

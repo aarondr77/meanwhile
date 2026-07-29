@@ -116,16 +116,24 @@ export function MarginColumn({
     const next: Record<string, number> = {};
     let cursor = 0;
 
-    for (const item of items) {
-      const node = column.querySelector<HTMLElement>(`[data-note="${item.key}"]`);
-      if (!node) continue;
+    // Lay out top-down by anchor position, not by comment age, so an unanchored note
+    // sitting at the foot of the entry cannot drag later notes down with it.
+    const placed = items
+      .map((item) => {
+        const node = column.querySelector<HTMLElement>(`[data-note="${item.key}"]`);
+        if (!node) return null;
+        const anchor = item.blockId
+          ? prose.querySelector<HTMLElement>(`[data-block-id="${item.blockId}"]`)
+          : null;
+        const target = anchor ? anchor.getBoundingClientRect().top - proseTop : prose.offsetHeight;
+        return { key: item.key, node, target };
+      })
+      .filter((entry): entry is { key: string; node: HTMLElement; target: number } => entry !== null)
+      .sort((a, b) => a.target - b.target);
 
-      const anchor = item.blockId
-        ? prose.querySelector<HTMLElement>(`[data-block-id="${item.blockId}"]`)
-        : null;
-      const target = anchor ? anchor.getBoundingClientRect().top - proseTop : prose.offsetHeight;
+    for (const { key, node, target } of placed) {
       const top = Math.max(target, cursor);
-      next[item.key] = top;
+      next[key] = top;
       cursor = top + node.offsetHeight + GAP;
     }
 

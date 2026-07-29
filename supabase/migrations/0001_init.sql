@@ -62,6 +62,8 @@ create trigger entries_touch_updated_at
 create or replace function public.detach_orphaned_comments()
 returns trigger
 language plpgsql
+security definer
+set search_path = public
 as $$
 declare
   live_ids uuid[];
