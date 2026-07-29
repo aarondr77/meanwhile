@@ -98,9 +98,19 @@ export function Calendar({ profiles, onOpenDay }: { profiles: Profile[]; onOpenD
         />
 
         <header className={styles.header}>
-          <h1 className={styles.title}>
-            {MONTH_NAMES[cursor.month - 1]} <span className={styles.year}>{cursor.year}</span>
-          </h1>
+          <div>
+            <h1 className={styles.title}>
+              {MONTH_NAMES[cursor.month - 1]} <span className={styles.year}>{cursor.year}</span>
+            </h1>
+            <p className={`chrome ${styles.legend}`}>
+              {profiles.map((profile) => (
+                <span key={profile.id} className={styles.legendItem}>
+                  <span className={styles.dot} style={{ background: profile.colour }} />
+                  {profile.display_name}
+                </span>
+              ))}
+            </p>
+          </div>
           <div className={styles.nav}>
             <button type="button" className={`chrome ${styles.arrow}`} onClick={() => step(-1)} aria-label="Previous month">
               ←
@@ -166,15 +176,6 @@ export function Calendar({ profiles, onOpenDay }: { profiles: Profile[]; onOpenD
             );
           })}
         </div>
-
-        <footer className={`chrome ${styles.legend}`}>
-          {profiles.map((profile) => (
-            <span key={profile.id} className={styles.legendItem}>
-              <span className={styles.dot} style={{ background: profile.colour }} />
-              {profile.display_name}
-            </span>
-          ))}
-        </footer>
       </div>
     </main>
   );
