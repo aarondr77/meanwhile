@@ -2,7 +2,7 @@
 .map {
   position: fixed;
   top: 50%;
-  left: max(12px, calc(50% - var(--page-width) / 2 - 108px));
+  left: max(12px, calc(50% - var(--page-width) / 2 - 172px));
   transform: translateY(-50%);
   z-index: 4;
   display: flex;
@@ -76,7 +76,7 @@
 }
 
 /* No room for a margin gadget once the page is using the full width. */
-@media (max-width: 1180px) {
+@media (max-width: 1300px) {
   .map {
     display: none;
   }
