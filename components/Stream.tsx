@@ -8,6 +8,7 @@ import { addDays, formatDayHeading, formatMonthYear, MONTH_NAMES, todayIso } fro
 import { paintingForMonth } from "@/lib/paintings";
 import type { Comment, Entry, Profile } from "@/lib/database.types";
 import { EntryArticle } from "./EntryArticle";
+import { Minimap } from "./Minimap";
 import { Painting } from "./Painting";
 import styles from "./stream.module.css";
 
@@ -31,7 +32,7 @@ export function Stream({
   const [range, setRange] = useState({ start: addDays(initialDate, -(WINDOW_DAYS - 1)), end: initialDate });
   const [entries, setEntries] = useState<Entry[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [topMonth, setTopMonth] = useState(initialDate);
+  const [topDay, setTopDay] = useState(initialDate);
   const loading = useRef(false);
   const anchorHeight = useRef<number | null>(null);
   const anchored = useRef(false);
@@ -120,7 +121,7 @@ export function Stream({
   useEffect(() => {
     const onScroll = () => {
       if (!anchored.current) {
-        setTopMonth(initialDate);
+        setTopDay(initialDate);
         if (window.location.hash !== `#${initialDate}`) {
           history.replaceState(null, "", `#${initialDate}`);
         }
@@ -132,7 +133,7 @@ export function Stream({
         if (section.getBoundingClientRect().top <= 80) current = section.dataset.day ?? null;
       }
       if (current) {
-        setTopMonth(current);
+        setTopDay(current);
         if (window.location.hash !== `#${current}`) {
           history.replaceState(null, "", `#${current}`);
         }
@@ -212,8 +213,23 @@ export function Stream({
           onBack();
         }}
       >
-        ← {formatMonthYear(topMonth)}
+        ← {formatMonthYear(topDay)}
       </Link>
+
+      <Minimap
+        activeDate={topDay}
+        profiles={profiles}
+        onJump={(date) => {
+          // Already on the page: scroll to it. Otherwise reload the stream around it.
+          const section = document.querySelector<HTMLElement>(`[data-day="${date}"]`);
+          if (!section) {
+            window.location.hash = date;
+            return;
+          }
+          anchored.current = true;
+          window.scrollBy({ top: section.getBoundingClientRect().top - ANCHOR_OFFSET, behavior: "smooth" });
+        }}
+      />
 
       <div ref={topSentinel} />
 

@@ -1,0 +1,83 @@
+/* Parked in the left margin beside the page, out of the prose's way. */
+.map {
+  position: fixed;
+  top: 50%;
+  left: max(12px, calc(50% - var(--page-width) / 2 - 108px));
+  transform: translateY(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 8px;
+  opacity: 0.55;
+  transition: opacity 150ms ease;
+}
+
+.map:hover,
+.map:focus-within {
+  opacity: 1;
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 8px);
+  gap: 2px;
+}
+
+.blank {
+  width: 8px;
+  height: 8px;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  background: var(--rule);
+  border: 0;
+  border-radius: 1px;
+  cursor: pointer;
+}
+
+.cell:hover {
+  outline: 1px solid var(--ink-muted);
+}
+
+.today {
+  background: #cfccc5;
+}
+
+.active {
+  outline: 1px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+}
+
+/* No room for a margin gadget once the page is using the full width. */
+@media (max-width: 1180px) {
+  .map {
+    display: none;
+  }
+}
