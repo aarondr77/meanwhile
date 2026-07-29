@@ -11,9 +11,11 @@
   transition: opacity 150ms ease, top 150ms ease;
 }
 
-/* Centred on the note's first line, stopping short of the text. */
+/* Centred on the note's first line, stopping short of the text. The font-size is
+   the note's own, so the offset is half of that line box rather than half of 1rem. */
 .connector {
   position: absolute;
+  font-size: 13px;
   top: 0.75em;
   left: calc(-1 * var(--gutter));
   width: calc(var(--gutter) - 10px);
