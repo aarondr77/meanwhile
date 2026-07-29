@@ -91,12 +91,6 @@ export function Calendar({ profiles, onOpenDay }: { profiles: Profile[]; onOpenD
   return (
     <main className={styles.page}>
       <div className={styles.calendar}>
-        <div className={styles.binding} aria-hidden="true">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <span key={i} className={styles.ring} />
-          ))}
-        </div>
-
         <Painting
           slug={paintingForMonth(cursor.month)}
           sizes="(max-width: 640px) 100vw, 928px"

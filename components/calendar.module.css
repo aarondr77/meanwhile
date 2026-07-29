@@ -6,38 +6,16 @@
 
 .calendar {
   position: relative;
-  padding-top: 28px;
 }
 
-.binding {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 28px;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  padding: 0 6%;
-  pointer-events: none;
-}
-
-.ring {
-  display: block;
-  width: 14px;
-  height: 26px;
-  border: 1px solid var(--rule);
-  border-top-color: var(--ink-muted);
-  border-radius: 7px;
-  background: transparent;
-}
-
+/* height:auto is required, or the img's height attribute wins over aspect-ratio. */
 .painting {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 1;
+  height: auto;
+  aspect-ratio: 4.5 / 1;
   object-fit: cover;
-  object-position: center 55%;
+  object-position: center 58%;
   border-radius: 3px;
 }
 
@@ -194,6 +172,9 @@
 @media (max-width: 640px) {
   .page {
     padding: 24px 24px 60px;
+  }
+  .painting {
+    aspect-ratio: 3 / 1;
   }
   .title {
     font-size: 32px;
