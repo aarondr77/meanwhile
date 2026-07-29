@@ -8,6 +8,7 @@ const GAP = 12;
 
 export interface CommentComposer {
   blockId: string | null;
+  anchorRatio: number;
 }
 
 export function CommentNote({
@@ -92,7 +93,7 @@ export function MarginColumn({
   meId: string;
   composer: CommentComposer | null;
   onDelete: (id: string) => void;
-  onSubmit: (blockId: string | null, body: string) => void;
+  onSubmit: (blockId: string | null, anchorRatio: number, body: string) => void;
   onCancel: () => void;
   version: number;
 }) {
@@ -101,8 +102,15 @@ export function MarginColumn({
 
   const items = useMemo(
     () => [
-      ...comments.map((comment) => ({ key: comment.id, blockId: comment.block_id, comment })),
-      ...(composer ? [{ key: "composer", blockId: composer.blockId, comment: null }] : []),
+      ...comments.map((comment) => ({
+        key: comment.id,
+        blockId: comment.block_id,
+        anchorRatio: comment.anchor_ratio,
+        comment,
+      })),
+      ...(composer
+        ? [{ key: "composer", blockId: composer.blockId, anchorRatio: composer.anchorRatio, comment: null }]
+        : []),
     ],
     [comments, composer],
   );
@@ -125,7 +133,8 @@ export function MarginColumn({
         const anchor = item.blockId
           ? prose.querySelector<HTMLElement>(`[data-block-id="${item.blockId}"]`)
           : null;
-        const target = anchor ? anchor.getBoundingClientRect().top - proseTop : prose.offsetHeight;
+        const box = anchor?.getBoundingClientRect();
+        const target = box ? box.top - proseTop + item.anchorRatio * box.height : prose.offsetHeight;
         return { key: item.key, node, target };
       })
       .filter((entry): entry is { key: string; node: HTMLElement; target: number } => entry !== null)
@@ -177,7 +186,10 @@ export function MarginColumn({
               onDelete={onDelete}
             />
           ) : (
-            <CommentForm onSubmit={(body) => onSubmit(item.blockId, body)} onCancel={onCancel} />
+            <CommentForm
+              onSubmit={(body) => onSubmit(item.blockId, item.anchorRatio, body)}
+              onCancel={onCancel}
+            />
           )}
         </div>
       ))}

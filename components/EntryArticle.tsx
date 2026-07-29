@@ -39,13 +39,14 @@ export function EntryArticle({
   const published = Boolean(entry?.published_at);
   const body = entry?.body ?? [];
 
-  const addComment = async (blockId: string | null, text: string) => {
+  const addComment = async (blockId: string | null, anchorRatio: number, text: string) => {
     setComposer(null);
     if (!entry) return;
     await supabase.from("comments").insert({
       entry_id: entry.id,
       author_id: me.id,
       block_id: blockId,
+      anchor_ratio: anchorRatio,
       body: text,
     });
     onCommentsChange();
@@ -70,7 +71,16 @@ export function EntryArticle({
     const node = selection.anchorNode;
     const element = node instanceof Element ? node : node?.parentElement;
     const block = element?.closest<HTMLElement>("[data-block-id]");
-    setComposer({ blockId: block?.dataset.blockId ?? null });
+
+    // Note beside the selected line, not the top of a paragraph that may run for inches.
+    const selectionBox = selection.getRangeAt(0).getBoundingClientRect();
+    const blockBox = block?.getBoundingClientRect();
+    const anchorRatio =
+      blockBox && blockBox.height > 0
+        ? Math.min(Math.max((selectionBox.top - blockBox.top) / blockBox.height, 0), 1)
+        : 0;
+
+    setComposer({ blockId: block?.dataset.blockId ?? null, anchorRatio });
   };
 
   return (
@@ -108,7 +118,7 @@ export function EntryArticle({
                   ))}
                   {showComposer ? (
                     <CommentForm
-                      onSubmit={(text) => addComment(blockId ?? null, text)}
+                      onSubmit={(text) => addComment(blockId ?? null, composer?.anchorRatio ?? 0, text)}
                       onCancel={() => setComposer(null)}
                     />
                   ) : null}
@@ -122,7 +132,7 @@ export function EntryArticle({
           <button
             type="button"
             className={`${marginStyles.inlineTrigger} ${styles.inlineOnly}`}
-            onClick={() => setComposer({ blockId: null })}
+            onClick={() => setComposer({ blockId: null, anchorRatio: 0 })}
           >
             Add a note
           </button>
@@ -140,7 +150,7 @@ export function EntryArticle({
               />
             ))}
             {composer?.blockId === null ? (
-              <CommentForm onSubmit={(text) => addComment(null, text)} onCancel={() => setComposer(null)} />
+              <CommentForm onSubmit={(text) => addComment(null, 0, text)} onCancel={() => setComposer(null)} />
             ) : null}
           </div>
         ) : null}
@@ -163,7 +173,7 @@ export function EntryArticle({
             type="button"
             className={styles.marginTarget}
             aria-label="Add a note"
-            onClick={() => setComposer({ blockId: null })}
+            onClick={() => setComposer({ blockId: null, anchorRatio: 0 })}
           />
         </div>
       ) : null}

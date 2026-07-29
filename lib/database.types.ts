@@ -39,6 +39,8 @@ export interface Comment {
   entry_id: string;
   author_id: string;
   block_id: string | null;
+  /** 0 at the block's top edge, 1 at its bottom: where in the block the note was written. */
+  anchor_ratio: number;
   body: string;
   created_at: string;
 }
@@ -66,7 +68,10 @@ export interface Database {
       };
       comments: {
         Row: Comment;
-        Insert: Omit<Comment, "id" | "created_at"> & { id?: string };
+        Insert: Omit<Comment, "id" | "created_at" | "anchor_ratio"> & {
+          id?: string;
+          anchor_ratio?: number;
+        };
         Update: Partial<Comment>;
         Relationships: [];
       };
