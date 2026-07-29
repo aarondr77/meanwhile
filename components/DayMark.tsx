@@ -25,23 +25,26 @@ export function DayMark({ date, published }: { date: string; published: boolean 
     let polls = 0;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
+    // Everything but a drawn mark and an admitted failure is worth another look: a
+    // just-published day is briefly unclaimed, and a dropped request means nothing.
     const tick = async () => {
       polls += 1;
+      let again = true;
       try {
         const response = await fetch(`/api/day-mark?date=${date}`);
-        if (!response.ok) return;
-        const mark = (await response.json()) as MarkResponse;
-        if (cancelled) return;
-        if (mark.state === "ready" && mark.svg) {
-          setSvg(mark.svg);
-          return;
-        }
-        if (mark.state === "pending" && polls < MAX_POLLS) {
-          timer = setTimeout(() => void tick(), POLL_MS);
+        if (response.ok) {
+          const mark = (await response.json()) as MarkResponse;
+          if (cancelled) return;
+          if (mark.state === "ready" && mark.svg) {
+            setSvg(mark.svg);
+            return;
+          }
+          again = mark.state !== "failed";
         }
       } catch {
-        // Offline or mid-deploy: the mark can wait for the next visit.
+        // Offline or mid-deploy: try again on the next tick.
       }
+      if (again && polls < MAX_POLLS) timer = setTimeout(() => void tick(), POLL_MS);
     };
 
     void tick();
