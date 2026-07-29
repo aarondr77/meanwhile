@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "paintings": "node scripts/build-paintings.mjs"
+    "paintings": "node scripts/build-paintings.mjs",
+    "seed:staging": "node --env-file=.env.staging scripts/seed-staging.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

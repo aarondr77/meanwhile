@@ -57,3 +57,14 @@
 .note {
   color: var(--ink-muted);
 }
+
+.devForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.devForm .button {
+  margin-top: 0;
+}

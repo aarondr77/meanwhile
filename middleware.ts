@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { devLoginEnabled } from "@/lib/devLogin";
 
 const PUBLIC_PATHS = ["/login", "/auth/callback", "/auth/error"];
 
@@ -36,7 +37,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname === "/login") {
+  // On staging /login is the user switcher, so signed-in visitors stay there.
+  if (user && pathname === "/login" && !devLoginEnabled()) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
