@@ -1,0 +1,162 @@
+.wrap {
+  position: relative;
+}
+
+/* Typography here is identical to the read view; only the caret differs. */
+.prose {
+  outline: none;
+  font-size: 19px;
+  line-height: 1.65;
+}
+
+.prose p {
+  margin: 0 0 1.4em;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose h2,
+.prose h3 {
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 500;
+  margin: 1.4em 0 0.6em;
+}
+
+.prose blockquote {
+  margin: 0 0 1.4em;
+  padding-left: 20px;
+  border-left: 1px solid var(--rule);
+  color: var(--ink-muted);
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 1.4em;
+  padding-left: 24px;
+}
+
+.prose img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 1.4em;
+}
+
+.prose p:global(.is-editor-empty):first-child::before {
+  content: attr(data-placeholder);
+  color: #b6b3ad;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.bubble {
+  display: flex;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 4px;
+}
+
+.bubble button {
+  background: transparent;
+  border: 0;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bubble button:hover {
+  background: #f5f3f0;
+}
+
+.publishRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 1.4em;
+}
+
+.publish {
+  padding: 8px 18px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.publish:hover {
+  border-color: var(--ink);
+}
+
+.private,
+.status {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+/* The margin is empty on an unpublished entry, so save status lives there. */
+.status {
+  position: absolute;
+  top: 0;
+  left: calc(var(--prose-width) + var(--gutter));
+  width: var(--margin-width);
+}
+
+.retry {
+  display: block;
+  margin-top: 8px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.accessory {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .status {
+    position: static;
+    width: auto;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bubble {
+    display: none;
+  }
+
+  /* Formatting controls sit above the keyboard on a phone. */
+  .accessory {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    gap: 4px;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-top: 1px solid var(--rule);
+    z-index: 10;
+  }
+
+  .accessory button {
+    background: transparent;
+    border: 0;
+    padding: 6px 14px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+}

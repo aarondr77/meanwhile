@@ -1,0 +1,93 @@
+.column {
+  position: relative;
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.slot {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  transition: opacity 150ms ease, top 150ms ease;
+}
+
+/* Centred on the note's first line, stopping short of the text. The font-size is
+   the note's own, so the offset is half of that line box rather than half of 1rem. */
+.connector {
+  position: absolute;
+  font-size: 13px;
+  top: 0.75em;
+  left: calc(-1 * var(--gutter));
+  width: calc(var(--gutter) - 10px);
+  border-top: 1px solid var(--rule);
+}
+
+.note {
+  font-size: 13px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--ink-muted);
+  position: relative;
+}
+
+.noteBody {
+  white-space: pre-wrap;
+}
+
+.noteAuthor {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.delete {
+  background: transparent;
+  border: 0;
+  padding: 0 0 0 6px;
+  color: var(--ink-muted);
+  cursor: pointer;
+  opacity: 0;
+  font-style: normal;
+}
+
+.note:hover .delete,
+.delete:focus-visible {
+  opacity: 1;
+}
+
+.input {
+  width: 100%;
+  font-family: var(--font-prose), Georgia, serif;
+  font-size: 13px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--rule);
+  padding: 0 0 0 10px;
+  resize: none;
+  outline: none;
+}
+
+/* Below 900px there is no margin: notes sit under the block they annotate. */
+.inline {
+  margin: -0.8em 0 1.4em;
+  padding-left: 20px;
+  border-left: 1px solid var(--rule);
+}
+
+.inlineTrigger {
+  display: block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: -0.8em 0 1.4em;
+  font-family: var(--font-chrome), system-ui, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
