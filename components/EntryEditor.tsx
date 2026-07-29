@@ -4,13 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BubbleMenu, EditorContent, useEditor, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { createClient } from "@/lib/supabase/client";
 import { uploadEntryImage } from "@/lib/images";
 import { isEmptyBody } from "@/lib/blocks";
 import type { BlockNode, Entry, Profile } from "@/lib/database.types";
 import { BlockId } from "./editor/blockId";
+import { StoredImageNode } from "./editor/StoredImageNode";
 import styles from "./editor.module.css";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -74,7 +74,7 @@ export function EntryEditor({
       StarterKit.configure({ heading: { levels: [2, 3] } }),
       BlockId,
       Link.configure({ openOnClick: false, autolink: true }),
-      Image.configure({ inline: false }),
+      StoredImageNode.configure({ inline: false }),
       Placeholder.configure({ placeholder }),
     ],
     content: entry?.body?.length ? ({ type: "doc", content: entry.body } as JSONContent) : "",
