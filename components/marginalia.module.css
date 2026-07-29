@@ -11,11 +11,12 @@
   transition: opacity 150ms ease, top 150ms ease;
 }
 
+/* Centred on the note's first line, stopping short of the text. */
 .connector {
   position: absolute;
-  top: 0.65em;
+  top: 0.75em;
   left: calc(-1 * var(--gutter));
-  width: var(--gutter);
+  width: calc(var(--gutter) - 10px);
   border-top: 1px solid var(--rule);
 }
 

@@ -3,11 +3,15 @@
 import { useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Comment, Entry, Profile } from "@/lib/database.types";
-import { EntryBody } from "./EntryBody";
+import { blockIdOf, EntryBody, type Highlight } from "./EntryBody";
+import { blockText } from "@/lib/blocks";
 import { EntryEditor } from "./EntryEditor";
 import { CommentForm, CommentNote, MarginColumn, type CommentComposer } from "./Marginalia";
 import marginStyles from "./marginalia.module.css";
 import styles from "./stream.module.css";
+
+/** A note about the entry as a whole rather than any one passage. */
+const detachedAnchor: CommentComposer = { blockId: null, anchorRatio: 0, quote: "", quoteStart: 0 };
 
 export function EntryArticle({
   entry,
@@ -34,19 +38,22 @@ export function EntryArticle({
 }) {
   const proseRef = useRef<HTMLDivElement>(null);
   const [composer, setComposer] = useState<CommentComposer | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   const published = Boolean(entry?.published_at);
   const body = entry?.body ?? [];
 
-  const addComment = async (blockId: string | null, anchorRatio: number, text: string) => {
+  const addComment = async (anchor: CommentComposer, text: string) => {
     setComposer(null);
     if (!entry) return;
     await supabase.from("comments").insert({
       entry_id: entry.id,
       author_id: me.id,
-      block_id: blockId,
-      anchor_ratio: anchorRatio,
+      block_id: anchor.blockId,
+      anchor_ratio: anchor.anchorRatio,
+      quote: anchor.quote,
+      quote_start: anchor.quoteStart,
       body: text,
     });
     onCommentsChange();
@@ -60,6 +67,34 @@ export function EntryArticle({
   const commentsFor = (blockId: string | undefined) =>
     blockId ? comments.filter((comment) => comment.block_id === blockId) : [];
 
+  /**
+   * Locates each note's quote in the block as it reads now: the stored offset is
+   * preferred, then the first occurrence, and an edited-away quote simply drops out.
+   */
+  const highlightsFor = (blockId: string | undefined): Highlight[] => {
+    const block = blockId ? body.find((candidate) => blockIdOf(candidate) === blockId) : undefined;
+    if (!block) return [];
+    const text = blockText(block);
+
+    return commentsFor(blockId).flatMap((comment) => {
+      if (!comment.quote) return [];
+      const start =
+        text.slice(comment.quote_start, comment.quote_start + comment.quote.length) === comment.quote
+          ? comment.quote_start
+          : text.indexOf(comment.quote);
+      if (start < 0) return [];
+      return [
+        {
+          id: comment.id,
+          start,
+          end: start + comment.quote.length,
+          colour: profiles.find((profile) => profile.id === comment.author_id)?.colour ?? "#8a8a8a",
+          active: hovered === comment.id,
+        },
+      ];
+    });
+  };
+
   // The author's own prose is the editor, which has no per-block render slots, so their
   // notes all fall back to the single inline section (mobile) below the entry.
   const inlineFallback = editable ? comments : comments.filter((comment) => comment.block_id === null);
@@ -72,15 +107,31 @@ export function EntryArticle({
     const element = node instanceof Element ? node : node?.parentElement;
     const block = element?.closest<HTMLElement>("[data-block-id]");
 
+    const range = selection.getRangeAt(0);
+
     // Note beside the selected line, not the top of a paragraph that may run for inches.
-    const selectionBox = selection.getRangeAt(0).getBoundingClientRect();
+    const selectionBox = range.getBoundingClientRect();
     const blockBox = block?.getBoundingClientRect();
     const anchorRatio =
       blockBox && blockBox.height > 0
         ? Math.min(Math.max((selectionBox.top - blockBox.top) / blockBox.height, 0), 1)
         : 0;
 
-    setComposer({ blockId: block?.dataset.blockId ?? null, anchorRatio });
+    // Where the passage sits in the block's text, so it can be highlighted later.
+    let quoteStart = 0;
+    if (block) {
+      const preceding = document.createRange();
+      preceding.selectNodeContents(block);
+      preceding.setEnd(range.startContainer, range.startOffset);
+      quoteStart = preceding.toString().length;
+    }
+
+    setComposer({
+      blockId: block?.dataset.blockId ?? null,
+      anchorRatio,
+      quote: block ? range.toString() : "",
+      quoteStart,
+    });
   };
 
   return (
@@ -101,6 +152,7 @@ export function EntryArticle({
         ) : (
           <EntryBody
             body={body}
+            highlights={highlightsFor}
             afterBlock={(blockId) => {
               const own = commentsFor(blockId);
               const showComposer = Boolean(blockId) && composer?.blockId === blockId;
@@ -114,11 +166,12 @@ export function EntryArticle({
                       author={profiles.find((profile) => profile.id === comment.author_id)}
                       mine={comment.author_id === me.id}
                       onDelete={deleteComment}
+                      onHover={setHovered}
                     />
                   ))}
-                  {showComposer ? (
+                  {showComposer && composer ? (
                     <CommentForm
-                      onSubmit={(text) => addComment(blockId ?? null, composer?.anchorRatio ?? 0, text)}
+                      onSubmit={(text) => addComment(composer, text)}
                       onCancel={() => setComposer(null)}
                     />
                   ) : null}
@@ -132,7 +185,7 @@ export function EntryArticle({
           <button
             type="button"
             className={`${marginStyles.inlineTrigger} ${styles.inlineOnly}`}
-            onClick={() => setComposer({ blockId: null, anchorRatio: 0 })}
+            onClick={() => setComposer(detachedAnchor)}
           >
             Add a note
           </button>
@@ -147,10 +200,11 @@ export function EntryArticle({
                 author={profiles.find((profile) => profile.id === comment.author_id)}
                 mine={comment.author_id === me.id}
                 onDelete={deleteComment}
+                onHover={setHovered}
               />
             ))}
             {composer?.blockId === null ? (
-              <CommentForm onSubmit={(text) => addComment(null, 0, text)} onCancel={() => setComposer(null)} />
+              <CommentForm onSubmit={(text) => addComment(detachedAnchor, text)} onCancel={() => setComposer(null)} />
             ) : null}
           </div>
         ) : null}
@@ -167,13 +221,14 @@ export function EntryArticle({
             onDelete={deleteComment}
             onSubmit={addComment}
             onCancel={() => setComposer(null)}
+            onHover={setHovered}
             version={comments.length}
           />
           <button
             type="button"
             className={styles.marginTarget}
             aria-label="Add a note"
-            onClick={() => setComposer({ blockId: null, anchorRatio: 0 })}
+            onClick={() => setComposer(detachedAnchor)}
           />
         </div>
       ) : null}

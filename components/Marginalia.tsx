@@ -9,6 +9,8 @@ const GAP = 12;
 export interface CommentComposer {
   blockId: string | null;
   anchorRatio: number;
+  quote: string;
+  quoteStart: number;
 }
 
 export function CommentNote({
@@ -16,14 +18,20 @@ export function CommentNote({
   author,
   mine,
   onDelete,
+  onHover,
 }: {
   comment: Comment;
   author: Profile | undefined;
   mine: boolean;
   onDelete: (id: string) => void;
+  onHover: (id: string | null) => void;
 }) {
   return (
-    <div className={styles.note}>
+    <div
+      className={styles.note}
+      onMouseEnter={() => onHover(comment.id)}
+      onMouseLeave={() => onHover(null)}
+    >
       <span className={styles.noteBody}>{comment.body}</span>{" "}
       <span className={`chrome ${styles.noteAuthor}`} style={{ color: author?.colour }}>
         {author?.display_name}
@@ -85,6 +93,7 @@ export function MarginColumn({
   onDelete,
   onSubmit,
   onCancel,
+  onHover,
   version,
 }: {
   proseRef: React.RefObject<HTMLDivElement | null>;
@@ -93,8 +102,9 @@ export function MarginColumn({
   meId: string;
   composer: CommentComposer | null;
   onDelete: (id: string) => void;
-  onSubmit: (blockId: string | null, anchorRatio: number, body: string) => void;
+  onSubmit: (anchor: CommentComposer, body: string) => void;
   onCancel: () => void;
+  onHover: (id: string | null) => void;
   version: number;
 }) {
   const columnRef = useRef<HTMLDivElement>(null);
@@ -184,13 +194,11 @@ export function MarginColumn({
               author={profiles.find((profile) => profile.id === item.comment!.author_id)}
               mine={item.comment.author_id === meId}
               onDelete={onDelete}
+              onHover={onHover}
             />
-          ) : (
-            <CommentForm
-              onSubmit={(body) => onSubmit(item.blockId, item.anchorRatio, body)}
-              onCancel={onCancel}
-            />
-          )}
+          ) : composer ? (
+            <CommentForm onSubmit={(body) => onSubmit(composer, body)} onCancel={onCancel} />
+          ) : null}
         </div>
       ))}
     </div>

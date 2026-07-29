@@ -96,24 +96,34 @@ const script = [
   [1, "aaron", [paragraph("Made the soup. Understand the entry now.")]],
 ];
 
-/** [daysAgo, author of the annotated entry, commenter, block index or null, text] */
+/** [daysAgo, author of the annotated entry, commenter, block index or null, text, quoted passage] */
 const notes = [
-  [24, "aaron", "cat", 1, "A paper cutout ferry. I can see it exactly."],
-  [23, "cat", "aaron", 0, "Too much basil is the correct amount of basil."],
-  [23, "cat", "aaron", 1, "I do hate it. Sit down."],
-  [21, "aaron", "cat", 0, "This is my favourite kind of your entries."],
-  [21, "aaron", "cat", 2, "Forget them out loud next time — call me."],
-  [21, "cat", "aaron", 1, "Optimism is the point of a window box."],
-  [20, "cat", "aaron", 1, "Stealing this line for later."],
-  [17, "aaron", "cat", 0, "Salt the onions first, then again at the end. Every time."],
-  [14, "aaron", "aaron", 1, "Spite is a renewable resource."],
-  [13, "cat", "aaron", null, "Send the postcard. First lines are allowed to be bad."],
-  [10, "aaron", "cat", 0, "Suspicion is the correct response to your own repairs."],
-  [7, "aaron", "cat", 1, "It was absolutely you."],
-  [7, "cat", "aaron", 1, "That was the whole idea."],
-  [4, "cat", "aaron", 0, "You narrate them fine. You just don't believe it."],
-  [1, "cat", "aaron", 0, "Perfect entry."],
+  [24, "aaron", "cat", 1, "A paper cutout ferry. I can see it exactly.", "It looked like a paper cutout"],
+  [23, "cat", "aaron", 0, "Too much basil is the correct amount of basil.", "too much basil again"],
+  [23, "cat", "aaron", 1, "I do hate it. Sit down.", "standing up over the sink"],
+  [21, "aaron", "cat", 0, "This is my favourite kind of your entries.", "Long day"],
+  [21, "aaron", "cat", 2, "Forget them out loud next time — call me.", "forgetting them by evening"],
+  [21, "cat", "aaron", 1, "Optimism is the point of a window box.", "Optimistic of me"],
+  [20, "cat", "aaron", 1, "Stealing this line for later.", "the part of the story where nothing happens yet"],
+  [17, "aaron", "cat", 0, "Salt the onions first, then again at the end. Every time.", "under-salted the onions"],
+  [14, "aaron", "aaron", 1, "Spite is a renewable resource.", "mostly out of spite"],
+  [13, "cat", "aaron", null, "Send the postcard. First lines are allowed to be bad.", ""],
+  [10, "aaron", "cat", 0, "Suspicion is the correct response to your own repairs.", "unearned confidence"],
+  [7, "aaron", "cat", 1, "It was absolutely you.", "suggests I was the problem"],
+  [7, "cat", "aaron", 1, "That was the whole idea.", "Two people, one day, two pages"],
+  [4, "cat", "aaron", 0, "You narrate them fine. You just don't believe it.", "you narrate these days better than I do"],
+  [1, "cat", "aaron", 0, "Perfect entry.", "That's the whole entry"],
 ];
+
+const blockText = (block) => {
+  const parts = [];
+  const walk = (node) => {
+    if (typeof node?.text === "string") parts.push(node.text);
+    node?.content?.forEach(walk);
+  };
+  walk(block);
+  return parts.join("");
+};
 
 const aaronId = await ensureUser(aaronEmail, "Aaron", "#7A6E9E");
 const catId = await ensureUser(catEmail, "Cat", "#C2653A");
@@ -136,13 +146,22 @@ for (const [daysAgo, author, blocks, published = "auto"] of script) {
   seeded.set(`${author}:${daysAgo}`, { id: data.id, blocks });
 }
 
-for (const [daysAgo, author, commenter, blockIndex, body] of notes) {
+for (const [daysAgo, author, commenter, blockIndex, body, quoted = ""] of notes) {
   const entry = seeded.get(`${author}:${daysAgo}`);
   if (!entry) throw new Error(`no seeded ${author} entry ${daysAgo} days ago`);
-  const blockId = blockIndex === null ? null : entry.blocks[blockIndex].attrs.id;
-  const { error } = await db
-    .from("comments")
-    .insert({ entry_id: entry.id, author_id: authors[commenter], block_id: blockId, body });
+  const block = blockIndex === null ? null : entry.blocks[blockIndex];
+  const quoteStart = block && quoted ? blockText(block).indexOf(quoted) : -1;
+  if (block && quoted && quoteStart < 0) throw new Error(`quote not in block: ${quoted}`);
+
+  const { error } = await db.from("comments").insert({
+    entry_id: entry.id,
+    author_id: authors[commenter],
+    block_id: block ? block.attrs.id : null,
+    anchor_ratio: 0,
+    quote: quoteStart < 0 ? "" : quoted,
+    quote_start: Math.max(quoteStart, 0),
+    body,
+  });
   if (error) throw error;
 }
 

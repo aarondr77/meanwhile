@@ -41,6 +41,10 @@ export interface Comment {
   block_id: string | null;
   /** 0 at the block's top edge, 1 at its bottom: where in the block the note was written. */
   anchor_ratio: number;
+  /** The passage the note is about, empty for notes written before quotes were kept. */
+  quote: string;
+  /** Character offset of `quote` within the block's text. */
+  quote_start: number;
   body: string;
   created_at: string;
 }
@@ -68,9 +72,11 @@ export interface Database {
       };
       comments: {
         Row: Comment;
-        Insert: Omit<Comment, "id" | "created_at" | "anchor_ratio"> & {
+        Insert: Omit<Comment, "id" | "created_at" | "anchor_ratio" | "quote" | "quote_start"> & {
           id?: string;
           anchor_ratio?: number;
+          quote?: string;
+          quote_start?: number;
         };
         Update: Partial<Comment>;
         Relationships: [];
