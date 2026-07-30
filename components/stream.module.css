@@ -25,11 +25,30 @@
   margin-bottom: 4rem;
 }
 
+.dayHeadingRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 1.4em;
+}
+
 .dayHeading {
   font-size: 28px;
   line-height: 1.2;
   font-weight: 400;
-  margin: 0 0 1.4em;
+  margin: 0;
+}
+
+/* The day's mark sits beside the date, a little smaller than the type. */
+.mark {
+  display: inline-flex;
+  flex: none;
+}
+
+.mark svg {
+  height: 26px;
+  width: auto;
+  overflow: visible;
 }
 
 .entry {

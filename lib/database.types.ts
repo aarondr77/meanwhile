@@ -34,6 +34,16 @@ export interface EntryImage {
   alt: string | null;
 }
 
+/** The mark drawn for a day; `svg` is null while the drawing session is still running. */
+export interface DayMark {
+  entry_date: string;
+  svg: string | null;
+  session_id: string | null;
+  requested_at: string;
+  completed_at: string | null;
+  failed_at: string | null;
+}
+
 export interface Comment {
   id: string;
   entry_id: string;
@@ -68,6 +78,12 @@ export interface Database {
         Row: EntryImage;
         Insert: Omit<EntryImage, "id"> & { id?: string };
         Update: Partial<EntryImage>;
+        Relationships: [];
+      };
+      day_marks: {
+        Row: DayMark;
+        Insert: Pick<DayMark, "entry_date"> & Partial<DayMark>;
+        Update: Partial<DayMark>;
         Relationships: [];
       };
       comments: {
