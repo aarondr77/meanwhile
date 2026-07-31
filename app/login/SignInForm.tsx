@@ -1,25 +1,25 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import type { Account } from "@/lib/accounts";
 import { signIn } from "./actions";
 import styles from "./login.module.css";
 
-export function SignInForm({ accounts, prompt }: { accounts: Account[]; prompt: string }) {
-  const [who, setWho] = useState<Account | null>(null);
+/** Names only: the page never carries their addresses, just which of the two you are. */
+export function SignInForm({ names, prompt }: { names: string[]; prompt: string }) {
+  const [who, setWho] = useState<number | null>(null);
   const [state, action, pending] = useActionState(signIn, null);
 
-  if (!who) {
+  if (who === null) {
     return (
       <div className={styles.who}>
-        {accounts.map((account) => (
+        {names.map((name, index) => (
           <button
-            key={account.email}
+            key={name}
             type="button"
             className={`chrome ${styles.button}`}
-            onClick={() => setWho(account)}
+            onClick={() => setWho(index)}
           >
-            I&rsquo;m {account.name}
+            I&rsquo;m {name}
           </button>
         ))}
       </div>
@@ -28,7 +28,7 @@ export function SignInForm({ accounts, prompt }: { accounts: Account[]; prompt: 
 
   return (
     <form action={action} className={styles.form}>
-      <input type="hidden" name="email" value={who.email} />
+      <input type="hidden" name="who" value={who} />
 
       <p className={styles.sentence}>
         <span>{prompt}</span>
@@ -49,7 +49,7 @@ export function SignInForm({ accounts, prompt }: { accounts: Account[]; prompt: 
           {pending ? "…" : "Enter"}
         </button>
         <button type="button" className={`chrome ${styles.back}`} onClick={() => setWho(null)}>
-          not {who.name}
+          not {names[who]}
         </button>
       </div>
 
