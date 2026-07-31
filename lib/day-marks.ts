@@ -1,12 +1,12 @@
-import type { createClient } from "@/lib/supabase/server";
-import type { UnclaimedDayMark } from "@/lib/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database, UnclaimedDayMark } from "@/lib/database.types";
 import { createSession, getSession, isTerminal } from "@/lib/devin";
 import { MARK_OUTPUT_SCHEMA, markPrompt, randomSeed, sanitiseMark } from "@/lib/marks";
 
-type Supabase = Awaited<ReturnType<typeof createClient>>;
+type Supabase = SupabaseClient<Database>;
 
 /** How many drawn-or-drawing marks the pool tries to keep waiting for a day to claim. */
-const POOL_TARGET = 5;
+export const POOL_TARGET = 10;
 /** A ceiling on sessions started per request, so a drained pool never floods Devin. */
 const MAX_REFILL = 3;
 /** A ceiling on sessions polled per request, so harvesting stays cheap on a hot path. */

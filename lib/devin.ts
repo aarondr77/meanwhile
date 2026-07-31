@@ -36,6 +36,20 @@ export function devinConfigured(): boolean {
   return Boolean(process.env.DEVIN_API_KEY && process.env.DEVIN_ORG_ID);
 }
 
+/**
+ * Fail loudly on credentials that will not draw. The app treats a refusing Devin as a
+ * day without a mark, which is right on a request path and useless to someone warming
+ * the pool from a terminal, so this asks the API whether the key and org actually work.
+ */
+export async function assertDevinCredentials(): Promise<void> {
+  if (!devinConfigured()) throw new Error("DEVIN_API_KEY and DEVIN_ORG_ID are required");
+  try {
+    await call("/sessions?limit=1");
+  } catch (error) {
+    throw new Error(`Devin credentials rejected (${(error as Error).message}): check the cog_ key and its org`);
+  }
+}
+
 export async function createSession(
   prompt: string,
   options: { title: string; schema: unknown; maxAcu?: number; tags?: string[] },
