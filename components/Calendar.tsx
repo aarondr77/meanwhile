@@ -6,7 +6,6 @@ import { fetchDots, type Dot } from "@/lib/journal";
 import { MONTH_NAMES, monthBounds, monthGrid, todayIso } from "@/lib/dates";
 import { paintingForMonth } from "@/lib/paintings";
 import type { Profile } from "@/lib/database.types";
-import { signOut } from "@/app/login/actions";
 import { Painting } from "./Painting";
 import styles from "./calendar.module.css";
 
@@ -119,11 +118,6 @@ export function Calendar({ profiles, onOpenDay }: { profiles: Profile[]; onOpenD
             <button type="button" className={`chrome ${styles.arrow}`} onClick={() => step(1)} aria-label="Next month">
               →
             </button>
-            <form action={signOut}>
-              <button type="submit" className={`chrome ${styles.signOut}`}>
-                Sign out
-              </button>
-            </form>
           </div>
         </header>
 
