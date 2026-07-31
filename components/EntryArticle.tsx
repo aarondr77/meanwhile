@@ -10,9 +10,6 @@ import { CommentForm, CommentNote, MarginColumn, type CommentComposer } from "./
 import marginStyles from "./marginalia.module.css";
 import styles from "./stream.module.css";
 
-/** A note about the entry as a whole rather than any one passage. */
-const detachedAnchor: CommentComposer = { blockId: null, anchorRatio: 0, quote: "", quoteStart: 0 };
-
 export function EntryArticle({
   entry,
   date,
@@ -106,30 +103,28 @@ export function EntryArticle({
     const node = selection.anchorNode;
     const element = node instanceof Element ? node : node?.parentElement;
     const block = element?.closest<HTMLElement>("[data-block-id]");
+    if (!block) return;
 
     const range = selection.getRangeAt(0);
 
     // Note beside the selected line, not the top of a paragraph that may run for inches.
     const selectionBox = range.getBoundingClientRect();
-    const blockBox = block?.getBoundingClientRect();
+    const blockBox = block.getBoundingClientRect();
     const anchorRatio =
-      blockBox && blockBox.height > 0
+      blockBox.height > 0
         ? Math.min(Math.max((selectionBox.top - blockBox.top) / blockBox.height, 0), 1)
         : 0;
 
     // Where the passage sits in the block's text, so it can be highlighted later.
-    let quoteStart = 0;
-    if (block) {
-      const preceding = document.createRange();
-      preceding.selectNodeContents(block);
-      preceding.setEnd(range.startContainer, range.startOffset);
-      quoteStart = preceding.toString().length;
-    }
+    const preceding = document.createRange();
+    preceding.selectNodeContents(block);
+    preceding.setEnd(range.startContainer, range.startOffset);
+    const quoteStart = preceding.toString().length;
 
     setComposer({
-      blockId: block?.dataset.blockId ?? null,
+      blockId: block.dataset.blockId ?? null,
       anchorRatio,
-      quote: block ? range.toString() : "",
+      quote: range.toString(),
       quoteStart,
     });
   };
@@ -181,7 +176,7 @@ export function EntryArticle({
           />
         )}
 
-        {published && (inlineFallback.length > 0 || composer?.blockId === null) ? (
+        {published && inlineFallback.length > 0 ? (
           <div className={`${marginStyles.inline} ${styles.inlineOnly}`}>
             {inlineFallback.map((comment) => (
               <CommentNote
@@ -193,9 +188,6 @@ export function EntryArticle({
                 onHover={setHovered}
               />
             ))}
-            {composer?.blockId === null ? (
-              <CommentForm onSubmit={(text) => addComment(detachedAnchor, text)} onCancel={() => setComposer(null)} />
-            ) : null}
           </div>
         ) : null}
       </div>
@@ -213,12 +205,6 @@ export function EntryArticle({
             onCancel={() => setComposer(null)}
             onHover={setHovered}
             version={comments.length}
-          />
-          <button
-            type="button"
-            className={styles.marginTarget}
-            aria-label="Add a note"
-            onClick={() => setComposer(detachedAnchor)}
           />
         </div>
       ) : null}
