@@ -17,9 +17,24 @@ SQL editor or the CLI (`supabase db push`). They create the four tables, the RLS
 policies, the `entry-images` storage bucket, and the trigger that mints a profile
 the first time each allowlisted address signs in.
 
-Auth is magic link only. `ALLOWED_EMAILS` is checked server-side before any email
-is sent; every other address gets the same "check your email" response. Add the
-deployment origin to the Supabase project's redirect allow list.
+Signing in is a sentence the two of them finish rather than an inbox: pick a name,
+complete the prompt, and the server compares it — lowercased, stripped of anything
+that isn't a letter or digit — against `sign_in.answer`, then mints the session with
+the service role. No mail, so no SMTP to configure. The answer is never in the
+repository and never reaches the browser; set it per project:
+
+```sql
+insert into sign_in (answer) values ('<the word>');
+```
+
+`ALLOWED_EMAILS` still bounds who can exist at all, and both people need an auth
+user before they can be offered as a name — create the second one once, with the
+name you want on the button:
+
+```sql
+-- Or the dashboard: Authentication → Add user → auto-confirm.
+update profiles set display_name = 'Cat' where display_name = 'Cat.lindberg';
+```
 
 ## Notifications
 
@@ -72,17 +87,15 @@ staging want unless they are deliberately testing delivery.
 ## Staging
 
 A second Supabase project + Vercel project holds throwaway data, so production is
-never seeded or reset. Its env (`.env.staging`, uncommitted) adds two variables:
+never seeded or reset. Its env (`.env.staging`, uncommitted) adds one variable:
 
 ```bash
-SUPABASE_SERVICE_ROLE_KEY=   # staging project only
 DEV_LOGIN=1
 ```
 
-`DEV_LOGIN=1` replaces the magic-link form with one button per allowlisted
-address — the server action mints a link with the service role and consumes it
-server-side, so no mail is involved — and keeps `/login` reachable while signed
-in, making it the user switcher. Production leaves both variables unset.
+`DEV_LOGIN=1` is the seed script's safety catch and nothing else: it refuses to
+wipe a project without it. Switching between the two people is just signing out
+and answering as the other one.
 
 ```bash
 npm run seed:staging   # wipes entries/comments, writes a month of both authors' days

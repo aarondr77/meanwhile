@@ -1,35 +1,20 @@
-import { devLoginEnabled } from "@/lib/devLogin";
-import { devAccounts } from "@/lib/devAccounts";
-import { devSignIn } from "./actions";
-import { MagicLinkForm } from "./MagicLinkForm";
+import { accounts, adminClient } from "@/lib/accounts";
+import { SignInForm } from "./SignInForm";
 import styles from "./login.module.css";
 
+// The names and the prompt are read per request, not baked in at build time.
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
-  const devLogin = devLoginEnabled();
-  const accounts = devLogin ? await devAccounts() : [];
+  const [people, { data: signIn }] = await Promise.all([
+    accounts(),
+    adminClient().from("sign_in").select("prompt").maybeSingle(),
+  ]);
 
   return (
     <main className={styles.page}>
       <h1 className={styles.title}>Meanwhile</h1>
-
-      {devLogin ? (
-        <form action={devSignIn} className={styles.devForm}>
-          <p className={`chrome ${styles.label}`}>Staging — sign in as</p>
-          {accounts.map(({ email, name }) => (
-            <button
-              key={email}
-              type="submit"
-              name="email"
-              value={email}
-              className={`chrome ${styles.button}`}
-            >
-              {name}
-            </button>
-          ))}
-        </form>
-      ) : (
-        <MagicLinkForm />
-      )}
+      <SignInForm accounts={people} prompt={signIn?.prompt ?? "I love you for"} />
     </main>
   );
 }
