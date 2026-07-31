@@ -5,8 +5,8 @@
 /* Typography here is identical to the read view; only the caret differs. */
 .prose {
   outline: none;
-  font-size: 19px;
-  line-height: 1.65;
+  font-size: 18px;
+  line-height: 1.7;
 }
 
 .prose p {

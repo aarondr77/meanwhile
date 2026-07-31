@@ -22,9 +22,9 @@ body {
   padding: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-prose), Georgia, serif;
-  font-size: 19px;
-  line-height: 1.65;
+  font-family: var(--font-prose), system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1.7;
   -webkit-text-size-adjust: 100%;
 }
 

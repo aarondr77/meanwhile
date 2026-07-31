@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Newsreader, IBM_Plex_Sans } from "next/font/google";
+import { Nunito_Sans, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-const newsreader = Newsreader({
+const nunitoSans = Nunito_Sans({
   variable: "--font-prose",
   subsets: ["latin"],
   style: ["normal", "italic"],
-  weight: ["400", "500"],
+  weight: ["400", "600"],
 });
 
 const plexSans = IBM_Plex_Sans({
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${newsreader.variable} ${plexSans.variable}`}>{children}</body>
+      <body className={`${nunitoSans.variable} ${plexSans.variable}`}>{children}</body>
     </html>
   );
 }

@@ -20,9 +20,7 @@
 }
 
 .day {
-  padding-bottom: 4rem;
-  border-bottom: 1px solid var(--rule);
-  margin-bottom: 4rem;
+  margin-bottom: 6rem;
 }
 
 .dayHeadingRow {
