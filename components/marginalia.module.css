@@ -58,7 +58,7 @@
 
 .input {
   width: 100%;
-  font-family: var(--font-prose), Georgia, serif;
+  font-family: var(--font-prose), system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.5;
   font-style: italic;
