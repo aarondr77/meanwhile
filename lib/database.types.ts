@@ -33,6 +33,13 @@ export interface Notification {
   error: string | null;
 }
 
+/** The shared sentence that stands in for a password, kept out of the source. */
+export interface SignIn {
+  id: boolean;
+  prompt: string;
+  answer: string;
+}
+
 export interface Entry {
   id: string;
   author_id: string;
@@ -90,6 +97,12 @@ export interface Database {
         Row: Notification;
         Insert: Pick<Notification, "recipient_id" | "kind" | "source_id"> & Partial<Notification>;
         Update: Partial<Notification>;
+        Relationships: [];
+      };
+      sign_in: {
+        Row: SignIn;
+        Insert: Pick<SignIn, "answer"> & Partial<SignIn>;
+        Update: Partial<SignIn>;
         Relationships: [];
       };
       entries: {

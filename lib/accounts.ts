@@ -10,8 +10,17 @@ export function adminClient() {
   );
 }
 
-/** The allowlisted addresses paired with the profile names, for the staging switcher. */
-export async function devAccounts(): Promise<{ email: string; name: string }[]> {
+export interface Account {
+  email: string;
+  name: string;
+}
+
+/**
+ * The two people, as the sign-in page offers them. Names come from the profile
+ * where there is one; whoever has not signed in yet is known by their address
+ * until the first time they do.
+ */
+export async function accounts(): Promise<Account[]> {
   const admin = adminClient();
 
   const [{ data: users }, { data: profiles }] = await Promise.all([
