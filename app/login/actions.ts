@@ -2,8 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isAllowed } from "@/lib/allowlist";
-import { adminClient } from "@/lib/accounts";
+import { accounts, adminClient } from "@/lib/accounts";
 
 /** Case, spacing and a stray full stop should never be the thing that keeps her out. */
 function normalise(answer: string): string {
@@ -12,20 +11,32 @@ function normalise(answer: string): string {
 
 const WRONG = { error: "That's not it." };
 
-export async function signIn(_prev: { error: string } | null, formData: FormData) {
-  const email = String(formData.get("email") ?? "");
+export async function signIn(
+  _prev: { error: string } | null,
+  formData: FormData,
+) {
+  const who = Number(formData.get("who"));
   const answer = String(formData.get("answer") ?? "");
 
   // Two people and a sentence they both know: slow guessing down rather than lock it.
   await new Promise((resolve) => setTimeout(resolve, 700));
 
-  if (!isAllowed(email)) return WRONG;
+  // The page offers names, not addresses: which of the two is an index into the allowlist.
+  const person = (await accounts())[who];
+  if (!person) return WRONG;
 
   const admin = adminClient();
-  const { data: expected } = await admin.from("sign_in").select("answer").maybeSingle();
-  if (!expected || normalise(answer) !== normalise(expected.answer)) return WRONG;
+  const { data: expected } = await admin
+    .from("sign_in")
+    .select("answer")
+    .maybeSingle();
+  if (!expected || normalise(answer) !== normalise(expected.answer))
+    return WRONG;
 
-  const { data: link, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+  const { data: link, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: person.email,
+  });
   if (error || !link.properties) return WRONG;
 
   const supabase = await createClient();

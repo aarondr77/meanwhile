@@ -14,7 +14,7 @@ export default async function LoginPage() {
   return (
     <main className={styles.page}>
       <h1 className={styles.title}>Meanwhile</h1>
-      <SignInForm accounts={people} prompt={signIn?.prompt ?? "I love you for"} />
+      <SignInForm names={people.map((person) => person.name)} prompt={signIn?.prompt ?? "I love you for"} />
     </main>
   );
 }
