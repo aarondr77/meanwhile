@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createSession, devinConfigured, getSession, isTerminal } from "@/lib/devin";
 import { isValidIsoDate } from "@/lib/dates";
+import { claimPoolMark, harvestPool, refillPool } from "@/lib/day-marks";
 import { MARK_OUTPUT_SCHEMA, markPrompt, sanitiseMark } from "@/lib/marks";
 import type { DayMark } from "@/lib/database.types";
 
@@ -43,6 +44,25 @@ export async function POST(request: Request) {
     if (error) return payload("pending");
   }
 
+  // Collect any pool sessions that have finished, so a mark drawn while nobody was
+  // publishing is available to be taken right now rather than on the next request.
+  await harvestPool(supabase);
+
+  // The whole point of the pool: a finished mark is taken at once, so the day is drawn
+  // the moment it is published instead of waiting twenty minutes for a session to answer.
+  const pooled = await claimPoolMark(supabase);
+  if (pooled) {
+    await supabase
+      .from("day_marks")
+      .update({ svg: pooled, session_id: null, completed_at: new Date().toISOString(), failed_at: null })
+      .eq("entry_date", date);
+    // Replace the mark just consumed so the next day is just as quick.
+    await refillPool(supabase);
+    return payload("ready", pooled);
+  }
+
+  // Pool is dry (first days, or a run of failed sessions): draw this day the slow way
+  // and start topping the pool up, so the wait is only ever paid once.
   try {
     const sessionId = await createSession(markPrompt(date), {
       title: `Journal mark for ${date}`,
@@ -50,6 +70,7 @@ export async function POST(request: Request) {
       tags: ["meanwhile-day-mark"],
     });
     await supabase.from("day_marks").update({ session_id: sessionId, failed_at: null }).eq("entry_date", date);
+    await refillPool(supabase);
     return payload("pending");
   } catch {
     await supabase.from("day_marks").update({ failed_at: new Date().toISOString() }).eq("entry_date", date);
