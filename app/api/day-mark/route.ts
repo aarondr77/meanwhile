@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createSession, devinConfigured, getSession, TERMINAL_STATUSES } from "@/lib/devin";
+import { createSession, devinConfigured, getSession, isTerminal } from "@/lib/devin";
 import { isValidIsoDate } from "@/lib/dates";
 import { MARK_OUTPUT_SCHEMA, markPrompt, sanitiseMark } from "@/lib/marks";
 import type { DayMark } from "@/lib/database.types";
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
   }
 
   // A finished session with no usable drawing is a failure: the day simply keeps no mark.
-  if (TERMINAL_STATUSES.has(session.status)) {
+  if (isTerminal(session)) {
     await supabase.from("day_marks").update({ failed_at: new Date().toISOString() }).eq("entry_date", date);
     return payload("failed");
   }

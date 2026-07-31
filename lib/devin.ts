@@ -1,11 +1,8 @@
-const API = "https://api.devin.ai/v1";
-
-interface SessionCreated {
-  session_id: string;
-}
+const API = "https://api.devin.ai/v3";
 
 export interface SessionState {
   status: string;
+  statusDetail: string | null;
   structuredOutput: Record<string, unknown> | null;
 }
 
@@ -15,8 +12,14 @@ function key(): string {
   return value;
 }
 
+function org(): string {
+  const value = process.env.DEVIN_ORG_ID;
+  if (!value) throw new Error("DEVIN_ORG_ID is not set");
+  return value;
+}
+
 async function call(path: string, init?: RequestInit): Promise<unknown> {
-  const response = await fetch(`${API}${path}`, {
+  const response = await fetch(`${API}/organizations/${org()}${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${key()}`,
@@ -30,7 +33,7 @@ async function call(path: string, init?: RequestInit): Promise<unknown> {
 }
 
 export function devinConfigured(): boolean {
-  return Boolean(process.env.DEVIN_API_KEY);
+  return Boolean(process.env.DEVIN_API_KEY && process.env.DEVIN_ORG_ID);
 }
 
 export async function createSession(
@@ -47,21 +50,31 @@ export async function createSession(
       tags: options.tags ?? [],
       unlisted: true,
       idempotent: true,
+      // A mark is drawn once and read from the database forever, so the VM is disposable.
+      resumable: false,
     }),
-  })) as SessionCreated;
+  })) as { session_id: string };
   return data.session_id;
 }
 
 export async function getSession(sessionId: string): Promise<SessionState> {
-  const data = (await call(`/session/${sessionId}`)) as {
-    status_enum?: string | null;
+  const data = (await call(`/sessions/${sessionId}`)) as {
+    status?: string | null;
+    status_detail?: string | null;
     structured_output?: Record<string, unknown> | null;
   };
   return {
-    status: data.status_enum ?? "unknown",
+    status: data.status ?? "unknown",
+    statusDetail: data.status_detail ?? null,
     structuredOutput: data.structured_output ?? null,
   };
 }
 
-/** Devin keeps working after answering, so a session with output is done for our purposes. */
-export const TERMINAL_STATUSES = new Set(["blocked", "finished", "expired", "stopped"]);
+/**
+ * A session that will draw nothing more, whether or not it answered. A finished
+ * session still reads as running for a while, so the detail settles it.
+ */
+export function isTerminal(session: SessionState): boolean {
+  if (["exit", "error", "suspended"].includes(session.status)) return true;
+  return session.status === "running" && session.statusDetail === "finished";
+}

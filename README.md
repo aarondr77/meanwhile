@@ -98,8 +98,9 @@ and the SVG the session must return). The stream polls `GET /api/day-mark?date=`
 until the session answers, then the SVG is sanitised against a small drawing
 subset of SVG and stored, so the mark is drawn once and read forever.
 
-`DEVIN_API_KEY` must be set for generation. Without it days simply keep no mark —
-nothing else changes.
+Generation needs `DEVIN_API_KEY` and `DEVIN_ORG_ID`: the API is v3, whose keys are
+org-scoped service user keys (`cog_` prefix, Settings → Service Users), so the org
+is part of every path. Without them days simply keep no mark — nothing else changes.
 
 ## Paintings
 
