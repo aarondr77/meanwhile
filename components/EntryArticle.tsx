@@ -181,16 +181,6 @@ export function EntryArticle({
           />
         )}
 
-        {published && !composer ? (
-          <button
-            type="button"
-            className={`${marginStyles.inlineTrigger} ${styles.inlineOnly}`}
-            onClick={() => setComposer(detachedAnchor)}
-          >
-            Add a note
-          </button>
-        ) : null}
-
         {published && (inlineFallback.length > 0 || composer?.blockId === null) ? (
           <div className={`${marginStyles.inline} ${styles.inlineOnly}`}>
             {inlineFallback.map((comment) => (
