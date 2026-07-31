@@ -37,9 +37,3 @@ export async function signIn(_prev: { error: string } | null, formData: FormData
 
   redirect("/");
 }
-
-export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
-}
