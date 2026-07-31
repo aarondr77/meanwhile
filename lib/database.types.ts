@@ -15,6 +15,24 @@ export interface Profile {
   colour: string;
 }
 
+/** Only ever the signed-in person's own row: user keys are not shared. */
+export interface PrivateProfile extends Profile {
+  /** 30 alphanumeric characters, null until they ask to be notified. */
+  pushover_key: string | null;
+  push_enabled: boolean;
+}
+
+export interface Notification {
+  id: string;
+  recipient_id: string;
+  kind: "entry";
+  source_id: string;
+  created_at: string;
+  sent_at: string | null;
+  provider_id: string | null;
+  error: string | null;
+}
+
 export interface Entry {
   id: string;
   author_id: string;
@@ -63,9 +81,15 @@ export interface Database {
   public: {
     Tables: {
       profiles: {
-        Row: Profile;
-        Insert: Profile;
-        Update: Partial<Profile>;
+        Row: PrivateProfile;
+        Insert: Profile & Partial<PrivateProfile>;
+        Update: Partial<PrivateProfile>;
+        Relationships: [];
+      };
+      notifications: {
+        Row: Notification;
+        Insert: Pick<Notification, "recipient_id" | "kind" | "source_id"> & Partial<Notification>;
+        Update: Partial<Notification>;
         Relationships: [];
       };
       entries: {
@@ -98,7 +122,12 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<never, never>;
+    Views: {
+      profiles_public: {
+        Row: Profile;
+        Relationships: [];
+      };
+    };
     Functions: {
       entry_dots: {
         Args: { range_start: string; range_end: string };
