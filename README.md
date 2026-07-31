@@ -104,12 +104,24 @@ npm run seed:staging   # wipes entries/comments, writes a month of both authors'
 ## Day marks
 
 Each day carries a small hand-drawn mark beside its date: two abstract figures,
-one in dusty violet and one in terracotta, for the two people writing. The first
-time a day gets a published entry, `POST /api/day-mark` claims the day in
-`day_marks` and asks a Devin session to draw it (`lib/marks.ts` holds the brief
-and the SVG the session must return). The stream polls `GET /api/day-mark?date=`
-until the session answers, then the SVG is sanitised against a small drawing
-subset of SVG and stored, so the mark is drawn once and read forever.
+one in dusty violet and one in terracotta, for the two people writing. Drawing one
+takes a Devin session several minutes, far too long to make a day wait, so marks are
+drawn ahead of time into a pool (`unclaimed_day_marks`) and a published day simply
+takes one.
+
+The first time a day gets a published entry, `POST /api/day-mark` harvests any pool
+sessions that have finished, claims the oldest finished mark for the day (`claim_day_mark`
+does it in one statement, so two days published at once never share a drawing), and
+starts a fresh session to replace the one it took. The stream sees the mark on its first
+`GET /api/day-mark?date=`, no polling. Only a dry pool — the first days of a fresh
+project, or a run of failed sessions — falls back to the old slow path: draw this day
+directly and poll `GET` until the session answers. Either way `lib/marks.ts` holds the
+brief and sanitises the returned SVG against a small drawing subset before it is stored.
+
+The pool refills itself as days are published, but a fresh project starts empty. Prime
+it before the first day by calling `POST /api/day-mark/pool` a few times while signed in
+(each call starts a few sessions and reports the ready/pending counts); wait a couple of
+minutes between calls for the drawings to land.
 
 Generation needs `DEVIN_API_KEY` and `DEVIN_ORG_ID`: the API is v3, whose keys are
 org-scoped service user keys (`cog_` prefix, Settings → Service Users), so the org

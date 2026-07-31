@@ -69,6 +69,21 @@ export interface DayMark {
   failed_at: string | null;
 }
 
+/**
+ * A mark drawn ahead of any day needing one, waiting in the pool. `svg` is null while
+ * the drawing session runs; `claimed_at` is set the instant a published day takes it.
+ */
+export interface UnclaimedDayMark {
+  id: string;
+  seed: string;
+  svg: string | null;
+  session_id: string | null;
+  requested_at: string;
+  completed_at: string | null;
+  failed_at: string | null;
+  claimed_at: string | null;
+}
+
 export interface Comment {
   id: string;
   entry_id: string;
@@ -123,6 +138,12 @@ export interface Database {
         Update: Partial<DayMark>;
         Relationships: [];
       };
+      unclaimed_day_marks: {
+        Row: UnclaimedDayMark;
+        Insert: Pick<UnclaimedDayMark, "seed"> & Partial<UnclaimedDayMark>;
+        Update: Partial<UnclaimedDayMark>;
+        Relationships: [];
+      };
       comments: {
         Row: Comment;
         Insert: Omit<Comment, "id" | "created_at" | "anchor_ratio" | "quote" | "quote_start"> & {
@@ -145,6 +166,10 @@ export interface Database {
       entry_dots: {
         Args: { range_start: string; range_end: string };
         Returns: { entry_date: string; author_id: string }[];
+      };
+      claim_day_mark: {
+        Args: Record<string, never>;
+        Returns: string | null;
       };
     };
     Enums: Record<never, never>;

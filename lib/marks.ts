@@ -81,16 +81,30 @@ export const MARK_OUTPUT_SCHEMA = {
   additionalProperties: false,
 } as const;
 
+/** A random seed for a pool mark, which belongs to no date until a day claims it. */
+export function randomSeed(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+/** Which of the four gesture families a seed draws; stable for a given seed. */
+function seedFamily(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return hash % 4;
+}
+
 /**
- * The day is the only variation the drawing gets: same brief, different mark,
- * so two people's journal accumulates a private alphabet rather than a logo.
+ * The seed is the only variation the drawing gets: same brief, different mark,
+ * so two people's journal accumulates a private alphabet rather than a logo. Marks
+ * are drawn ahead of a day claiming one, so the seed is a token, not a real date.
  */
-export function markPrompt(date: string): string {
-  return `Draw a small hand-drawn mark for one day of a private journal kept by two people. The day is ${date} — use it only as a seed for variation; never draw the date, letters, numbers or words.
+export function markPrompt(seed: string): string {
+  const family = seedFamily(seed);
+  return `Draw a small hand-drawn mark for one day of a private journal kept by two people. Use the seed "${seed}" only as a source of variation; never draw the seed, a date, letters, numbers or words.
 
 The mark: two abstract figures side by side, each one continuous gestural line (or a couple of lines) that reads as a figure, each with exactly one small filled dot (a head or a resting point). The two figures share a rhythm without being identical twins: one may lean, coil or open a little differently, and they need not be mirror images. They are two people sitting beside each other, so keep them close and roughly the same size.
 
-Pick the gesture from the day of the month in the date above: take the day number modulo 4 and draw that family for both figures — 0: a spiral that opens outward, its tail curling away; 1: a leaning seed or leaf shape with the dot floating just above it like a head; 2: a soft closed loop with the dot resting inside; 3: a tall coil that unwinds upward, the dot at its top. Within the family let the date shape the particulars: the lean, the number of turns, where the line ends.
+Draw gesture family ${family} (of four) for both figures — 0: a spiral that opens outward, its tail curling away; 1: a leaning seed or leaf shape with the dot floating just above it like a head; 2: a soft closed loop with the dot resting inside; 3: a tall coil that unwinds upward, the dot at its top. Within the family let the seed shape the particulars: the lean, the number of turns, where the line ends.
 
 Feel: peaceful, intimate, hand-drawn. Lines like a soft brush pen — even weight, moderately thick, every end and join rounded. Slightly imperfect and warm: the imperfection lives in the overall shape, not in the line itself, so a stroke is at most six long smooth curve segments and never has lumps, kinks, facets or little corners along it. Let a loop lean or not quite close, avoid perfect circles, symmetry, grids or anything that looks vector-precise. No frame, no background, no shading, no gradients, no text.
 
