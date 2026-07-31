@@ -83,15 +83,6 @@
   position: relative;
 }
 
-.marginTarget {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: transparent;
-  border: 0;
-  cursor: text;
-}
-
 .inlineOnly {
   display: none;
 }
