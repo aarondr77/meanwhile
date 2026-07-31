@@ -118,10 +118,17 @@ project, or a run of failed sessions — falls back to the old slow path: draw t
 directly and poll `GET` until the session answers. Either way `lib/marks.ts` holds the
 brief and sanitises the returned SVG against a small drawing subset before it is stored.
 
-The pool refills itself as days are published, but a fresh project starts empty. Prime
-it before the first day by calling `POST /api/day-mark/pool` a few times while signed in
-(each call starts a few sessions and reports the ready/pending counts); wait a couple of
-minutes between calls for the drawings to land.
+The pool keeps ten marks (`POOL_TARGET` in `lib/day-marks.ts`) and refills itself as days
+are published, but a fresh project starts empty. Prime it from a terminal:
+
+```bash
+npm run marks:warm   # checks the Devin key, then harvests and refills until ten are drawn
+```
+
+It reads `.env.local` and loops for up to three quarters of an hour, printing the
+ready/drawing counts as sessions answer. Signed in, `POST /api/day-mark/pool` does the
+same thing one round at a time — a few sessions per call, so call it a few times a
+couple of minutes apart.
 
 Generation needs `DEVIN_API_KEY` and `DEVIN_ORG_ID`: the API is v3, whose keys are
 org-scoped service user keys (`cog_` prefix, Settings → Service Users), so the org
