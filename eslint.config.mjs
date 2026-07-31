@@ -10,6 +10,8 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // Edge functions are Deno, with its own imports and globals.
+  { ignores: ["supabase/functions/**"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 

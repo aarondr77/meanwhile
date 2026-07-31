@@ -43,3 +43,6 @@ next-env.d.ts
 
 test-plan.md
 test-report.md
+
+# Supabase CLI link state
+supabase/.temp

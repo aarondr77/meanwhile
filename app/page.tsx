@@ -10,7 +10,7 @@ export default async function Home() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data } = await supabase.from("profiles").select("*").order("display_name");
+  const { data } = await supabase.from("profiles_public").select("*").order("display_name");
   const profiles = (data ?? []) as Profile[];
   const me = profiles.find((profile) => profile.id === user.id);
 
